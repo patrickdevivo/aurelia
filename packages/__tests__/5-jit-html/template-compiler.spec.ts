@@ -5,6 +5,7 @@ import {
   IContainer,
   kebabCase,
   PLATFORM,
+  Registration,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -28,7 +29,9 @@ import {
   TargetedInstructionType as TT,
   IHydrateLetElementInstruction,
   PartialCustomAttributeDefinition,
-  HooksDefinition
+  HooksDefinition,
+  DefaultSlotStrategy,
+  SlotStrategy
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -54,6 +57,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
     container = ctx.container;
+    Registration.instance(DefaultSlotStrategy, SlotStrategy.native).register(container);
     sut = ctx.templateCompiler;
     container.registerResolver<string>(CustomAttribute.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
   });
@@ -497,6 +501,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         instructions: [[childInstr]],
         needsCompile: false,
         scopeParts: [],
+        slotStrategy: null,
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -511,6 +516,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       scopeParts: [],
+      slotStrategy: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -534,6 +540,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         instructions,
         needsCompile: false,
         scopeParts: [],
+        slotStrategy: null,
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -549,6 +556,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       scopeParts: [],
+      slotStrategy: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -588,6 +596,7 @@ function createCustomElement(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     scopeParts: [],
+    slotStrategy: null,
   };
   return [input, output];
 }
@@ -625,6 +634,7 @@ function createCustomAttribute(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     scopeParts: [],
+    slotStrategy: null,
   };
   return [input, output];
 }
@@ -695,7 +705,10 @@ type Bindables = { [pdName: string]: BindableDefinition };
 describe(`TemplateCompiler - combinations`, function () {
   function createFixture(ctx: HTMLTestContext, ...globals: any[]) {
     const container = ctx.container;
-    container.register(...globals);
+    container.register(
+      ...globals,
+      Registration.instance(DefaultSlotStrategy, SlotStrategy.native),
+    );
     const sut = ctx.templateCompiler;
     return { container, sut };
   }
@@ -742,6 +755,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           scopeParts: [],
+          slotStrategy: null,
         };
 
         const { sut, container } = createFixture(ctx);
@@ -814,6 +828,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           scopeParts: [],
+          slotStrategy: null,
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1079,6 +1094,7 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           scopeParts: [],
+          slotStrategy: null,
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);

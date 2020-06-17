@@ -14,6 +14,8 @@ import {
   CustomElement,
   BindableDefinition,
   CustomElementDefinition,
+  SlotStrategy,
+  DefaultSlotStrategy,
 } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { BindingCommand, BindingCommandInstance } from './binding-command';
@@ -57,10 +59,11 @@ export class ElementInfo {
   public constructor(
     public name: string,
     public containerless: boolean,
+    public slotStrategy: SlotStrategy,
   ) {}
 
-  public static from(def: CustomElementDefinition): ElementInfo {
-    const info = new ElementInfo(def.name, def.containerless);
+  public static from(def: CustomElementDefinition, defaultSlotStrategy: SlotStrategy): ElementInfo {
+    const info = new ElementInfo(def.name, def.containerless, def.slotStrategy ?? defaultSlotStrategy);
     const bindables = def.bindables;
     const defaultBindingMode = BindingMode.toView;
 
@@ -183,12 +186,15 @@ export class ResourceModel {
   private readonly resourceResolvers: Record<string, IResolver | undefined | null>;
   private readonly rootResourceResolvers: Record<string, IResolver | undefined | null>;
 
+  private readonly defaultSlotStrategy: SlotStrategy;
+
   public constructor(container: IContainer) {
     // Note: don't do this sort of thing elsewhere, this is purely for perf reasons
     this.container = container;
     const rootContainer = (container as IContainer & { root: IContainer }).root;
     this.resourceResolvers = (container as IContainer & { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
     this.rootResourceResolvers = (rootContainer as IContainer & { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
+    this.defaultSlotStrategy = this.container.get(DefaultSlotStrategy);
   }
 
   public static getOrCreate(context: IContainer): ResourceModel {
@@ -213,7 +219,7 @@ export class ResourceModel {
     let result = this.elementLookup[name];
     if (result === void 0) {
       const def = this.find(CustomElement, name) as unknown as CustomElementDefinition;
-      this.elementLookup[name] = result = def === null ? null : ElementInfo.from(def);
+      this.elementLookup[name] = result = def === null ? null : ElementInfo.from(def, this.defaultSlotStrategy);
     }
 
     return result;

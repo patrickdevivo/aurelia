@@ -1,7 +1,8 @@
 import { IAttributeParser, ResourceModel } from '@aurelia/jit';
 import {
   IAttrSyntaxTransformer,
-  TemplateBinder
+  TemplateBinder,
+  ISlotEmulator,
 } from '@aurelia/jit-html';
 import {
   Aurelia,
@@ -145,7 +146,8 @@ describe('xml node compiler tests', function () {
         new ResourceModel(ctx.container),
         ctx.container.get(IAttributeParser),
         ctx.container.get(IExpressionParser),
-        ctx.container.get(IAttrSyntaxTransformer)
+        ctx.container.get(IAttrSyntaxTransformer),
+        ctx.container.get(ISlotEmulator),
       );
 
       const result = binder.bind(fakeSurrogate as any);

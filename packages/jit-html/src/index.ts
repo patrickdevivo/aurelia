@@ -38,3 +38,6 @@ export {
 export {
   ITemplateElementFactory
 } from './template-element-factory';
+export {
+  ISlotEmulator
+} from './slot-emulator';

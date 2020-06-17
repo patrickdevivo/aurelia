@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, Registration } from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElement,
@@ -8,6 +8,8 @@ import {
   view,
   customElement,
   getRenderContext,
+  DefaultSlotStrategy,
+  SlotStrategy,
 } from '@aurelia/runtime';
 import { RenderPlan } from '@aurelia/runtime-html';
 import { eachCartesianJoin, TestContext, trimFull, assert } from '@aurelia/testing';
@@ -125,6 +127,7 @@ describe(spec, function () {
 
     it(`verify au-compose behavior - subjectSpec ${subjectSpec.t}, templateSpec ${templateSpec.t}`, async function () {
       const ctx = createFixture();
+      Registration.instance(DefaultSlotStrategy, SlotStrategy.native).register(ctx.container);
       const subject = createSubject(ctx);
       const { au, host } = ctx;
 

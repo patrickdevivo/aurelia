@@ -1,4 +1,5 @@
 
+import { SlotStrategy } from "@aurelia/runtime";
 import { ITemplateElementFactory, ITemplateElementFactoryRegistration } from '@aurelia/jit-html';
 import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
 
@@ -17,7 +18,7 @@ describe('HTMLTemplateElementFactory', function () {
     const markup = `<template><div class="au">foo</div></template>`;
 
     const expectedHTML = markup;
-    const actualHTML = sut.createTemplate(markup).outerHTML;
+    const actualHTML = sut.createTemplate(markup, SlotStrategy.native).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -26,7 +27,7 @@ describe('HTMLTemplateElementFactory', function () {
     const markup = `<div class="au">foo</div>`;
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(markup).outerHTML;
+    const actualHTML = sut.createTemplate(markup, SlotStrategy.native).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -35,7 +36,7 @@ describe('HTMLTemplateElementFactory', function () {
     const markup = `<template><div class="au">foo</div></template>`.repeat(2);
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(markup).outerHTML;
+    const actualHTML = sut.createTemplate(markup, SlotStrategy.native).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -44,7 +45,7 @@ describe('HTMLTemplateElementFactory', function () {
     const markup = `<div class="au">foo</div>`.repeat(2);
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(markup).outerHTML;
+    const actualHTML = sut.createTemplate(markup, SlotStrategy.native).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -56,7 +57,7 @@ describe('HTMLTemplateElementFactory', function () {
     const node = template;
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(node).outerHTML;
+    const actualHTML = sut.createTemplate(node, SlotStrategy.native).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -68,7 +69,7 @@ describe('HTMLTemplateElementFactory', function () {
     const node = template.content.firstElementChild;
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(node).outerHTML;
+    const actualHTML = sut.createTemplate(node, SlotStrategy.native).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -82,7 +83,7 @@ describe('HTMLTemplateElementFactory', function () {
     assert.notStrictEqual(node.parentNode, null, `node.parentNode`);
 
     const expectedHTML = markup;
-    const actualNode = sut.createTemplate(node);
+    const actualNode = sut.createTemplate(node, SlotStrategy.native);
 
     assert.strictEqual(actualNode.outerHTML, expectedHTML, `actualNode.outerHTML`);
     assert.strictEqual(actualNode.parentNode, null, `actualNode.parentNode`);

@@ -17,6 +17,7 @@ import {
 import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
 import { TemplateCompiler } from './template-compiler';
 import { HTMLTemplateElementFactory } from './template-element-factory';
+import { SlotEmulator } from './slot-emulator';
 
 export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
 export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory as IRegistry;
@@ -30,7 +31,8 @@ export const IAttrSyntaxTransformerRegistation = HtmlAttrSyntaxTransformer as IR
 export const DefaultComponents = [
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,
-  IAttrSyntaxTransformerRegistation
+  IAttrSyntaxTransformerRegistation,
+  SlotEmulator,
 ];
 
 export const RefBindingCommandRegistration = RefBindingCommand as unknown as IRegistry;

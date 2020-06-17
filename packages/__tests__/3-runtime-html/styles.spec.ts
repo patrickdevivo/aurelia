@@ -1,5 +1,5 @@
 import { DI, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomAttribute, CustomElement, INode, CustomAttributeType, Controller, ICustomElementViewModel, ILifecycle, NodeSequence } from '@aurelia/runtime';
+import { Aurelia, CustomAttribute, CustomElement, INode, CustomAttributeType, Controller, ICustomElementViewModel, ILifecycle, NodeSequence, DefaultSlotStrategy, SlotStrategy } from '@aurelia/runtime';
 import {
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,
@@ -84,6 +84,7 @@ describe('Styles', function () {
     it('components do not inherit parent component styles', function () {
       const rootContainer = DI.createContainer();
       const parentContainer = rootContainer.createChild();
+      Registration.instance(DefaultSlotStrategy, SlotStrategy.native).register(rootContainer);
       const cssModulesLookup = {};
       const registry = new CSSModulesProcessorRegistry([cssModulesLookup]);
       registry.register(parentContainer);

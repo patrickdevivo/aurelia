@@ -1,5 +1,6 @@
 import { DI, IContainer, InterfaceSymbol, IResolver, Registration } from '@aurelia/kernel';
-import { IDOM, INode } from '@aurelia/runtime';
+import { IDOM, INode, SlotStrategy } from '@aurelia/runtime';
+import { ISlotEmulator } from './slot-emulator';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.
@@ -13,21 +14,21 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
    *
    * @param markup - A raw html string that may or may not be wrapped in `<template></template>`
    */
-  createTemplate(markup: string): TNode;
+  createTemplate(markup: string, strategy: SlotStrategy): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node. If the node is already a template, it
    * will be returned as-is (and removed from the DOM).
    *
    * @param node - A DOM node that may or may not be wrapped in `<template></template>`
    */
-  createTemplate(node: TNode): TNode;
+  createTemplate(node: TNode, strategy: SlotStrategy): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node or html string.
    *
    * @param input - A DOM node or raw html string that may or may not be wrapped in `<template></template>`
    */
-  createTemplate(input: unknown): TNode;
-  createTemplate(input: unknown): TNode;
+  createTemplate(input: unknown, strategy: SlotStrategy): TNode;
+  createTemplate(input: unknown, strategy: SlotStrategy): TNode;
 }
 
 // For some reason rollup complains about `DI.createInterface<ITemplateElementFactory>().noDefault()` with this message:
@@ -47,6 +48,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
 
   public constructor(
     @IDOM private readonly dom: IDOM,
+    @ISlotEmulator private readonly slotEmulator: ISlotEmulator,
   ) {
     this.template = dom.createTemplate() as HTMLTemplateElement;
   }
@@ -55,15 +57,18 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
     return Registration.singleton(ITemplateElementFactory, this).register(container);
   }
 
-  public createTemplate(markup: string): HTMLTemplateElement;
-  public createTemplate(node: Node): HTMLTemplateElement;
-  public createTemplate(input: unknown): HTMLTemplateElement;
-  public createTemplate(input: string | Node): HTMLTemplateElement {
+  public createTemplate(markup: string, strategy: SlotStrategy): HTMLTemplateElement;
+  public createTemplate(node: Node, strategy: SlotStrategy): HTMLTemplateElement;
+  public createTemplate(input: unknown, strategy: SlotStrategy): HTMLTemplateElement;
+  public createTemplate(input: string | Node, strategy: SlotStrategy): HTMLTemplateElement {
     if (typeof input === 'string') {
       let result = markupCache[input];
       if (result === void 0) {
         const template = this.template;
         template.innerHTML = input;
+        if (strategy === SlotStrategy.emulate) {
+          this.slotEmulator.emulateDefinition(template.content);
+        }
         const node = template.content.firstElementChild;
         // if the input is either not wrapped in a template or there is more than one node,
         // return the whole template that wraps it/them (and create a new one for the next input)
@@ -83,6 +88,9 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
       return result.cloneNode(true) as HTMLTemplateElement;
     }
     if (input.nodeName !== 'TEMPLATE') {
+      if (strategy === SlotStrategy.emulate) {
+        this.slotEmulator.emulateDefinition(input as HTMLElement);
+      }
       // if we get one node that is not a template, wrap it in one
       const template = this.dom.createTemplate() as HTMLTemplateElement;
       template.content.appendChild(input);
@@ -92,6 +100,9 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
     // do any other processing
     if (input.parentNode != null) {
       input.parentNode.removeChild(input);
+      if (strategy === SlotStrategy.emulate) {
+        this.slotEmulator.emulateDefinition((input as HTMLTemplateElement).content);
+      }
     }
     return input as HTMLTemplateElement;
   }

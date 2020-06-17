@@ -27,7 +27,9 @@ import {
   LetElementInstruction,
   SetPropertyInstruction,
   CustomElementDefinition,
-  IDOM
+  IDOM,
+  DefaultSlotStrategy,
+  SlotStrategy,
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,
@@ -54,6 +56,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from './semantic-model';
+import { ISlotEmulator } from './slot-emulator';
 
 class CustomElementCompilationUnit {
   public readonly instructions: ITargetedInstruction[][] = [];
@@ -99,7 +102,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     @ITemplateElementFactory private readonly factory: ITemplateElementFactory,
     @IAttributeParser private readonly attrParser: IAttributeParser,
     @IExpressionParser private readonly exprParser: IExpressionParser,
-    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer
+    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer,
+    @DefaultSlotStrategy private readonly slotStrategy: SlotStrategy,
   ) {}
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -115,9 +119,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     const resources = ResourceModel.getOrCreate(context);
     const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
 
-    const binder = new TemplateBinder(context.get(IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
+    const binder = new TemplateBinder(context.get(IDOM), resources, attrParser, exprParser, attrSyntaxModifier, context.get(ISlotEmulator));
 
-    const template = factory.createTemplate(definition.template) as HTMLTemplateElement;
+    const template = factory.createTemplate(definition.template, definition.slotStrategy ?? this.slotStrategy) as HTMLTemplateElement;
     const surrogate = binder.bind(template);
 
     const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);

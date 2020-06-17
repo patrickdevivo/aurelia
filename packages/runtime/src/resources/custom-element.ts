@@ -34,7 +34,7 @@ import {
   ICustomElementViewModel,
   ICustomElementController,
 } from '../lifecycle';
-import { BindingStrategy } from '../flags';
+import { BindingStrategy, SlotStrategy } from '../flags';
 import { Bindable, PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
 
@@ -55,6 +55,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly strategy?: BindingStrategy;
   readonly hooks?: Readonly<HooksDefinition>;
   readonly scopeParts?: readonly string[];
+  readonly slotStrategy?: SlotStrategy | null;
 }>;
 
 export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, ICustomElementViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
@@ -209,6 +210,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly strategy: BindingStrategy,
     public readonly hooks: Readonly<HooksDefinition>,
     public readonly scopeParts: string[],
+    public readonly slotStrategy: SlotStrategy | null,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -266,6 +268,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         fromDefinitionOrDefault('strategy', def, () => BindingStrategy.getterSetter),
         fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
         mergeArrays(def.scopeParts),
+        fromDefinitionOrDefault('slotStrategy', def, () => null),
       );
     }
 
@@ -303,6 +306,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
         mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts),
+        fromAnnotationOrTypeOrDefault('slotStrategy', Type, () => null),
       );
     }
 
@@ -345,6 +349,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
       mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts),
+      fromAnnotationOrDefinitionOrTypeOrDefault('slotStrategy', nameOrDef, Type, () => null),
     );
   }
 

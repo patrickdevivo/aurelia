@@ -18,7 +18,8 @@ import {
   BindingMode,
   BindingType,
   IDOM,
-  IExpressionParser
+  IExpressionParser,
+  SlotStrategy,
 } from '@aurelia/runtime';
 import {
   NodeType,
@@ -39,6 +40,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol,
 } from './semantic-model';
+import { ISlotEmulator } from './slot-emulator';
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
   'id': true,
@@ -145,7 +147,8 @@ export class TemplateBinder {
     public readonly resources: ResourceModel,
     public readonly attrParser: IAttributeParser,
     public readonly exprParser: IExpressionParser,
-    public readonly attrSyntaxTransformer: IAttrSyntaxTransformer
+    public readonly attrSyntaxTransformer: IAttrSyntaxTransformer,
+    private readonly slotEmulator: ISlotEmulator,
   ) {}
 
   public bind(node: HTMLTemplateElement): PlainElementSymbol {
@@ -253,6 +256,9 @@ export class TemplateBinder {
       manifest = new PlainElementSymbol(this.dom, node);
     } else {
       // it's a custom element so we set the manifestRoot as well (for storing replaces)
+      if(elementInfo.slotStrategy === SlotStrategy.emulate) {
+        this.slotEmulator.emulateUsage(node);
+      }
       parentManifestRoot = manifestRoot;
       manifestRoot = manifest = new CustomElementSymbol(this.dom, node, elementInfo);
     }

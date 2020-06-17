@@ -2,12 +2,15 @@ import {
   BindingMode,
   ITemplateCompiler,
   TargetedInstructionType as TT,
-  ITargetedInstruction
+  ITargetedInstruction,
+  DefaultSlotStrategy,
+  SlotStrategy
 } from '@aurelia/runtime';
 import {
   assert,
   TestContext
 } from '@aurelia/testing';
+import { Registration } from '@aurelia/kernel';
 
 describe('template-compiler.convention.spec.ts \n\thtml convention', function () {
 
@@ -36,11 +39,13 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
     const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}="${value}"`).join(' ');
     it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
       const ctx = TestContext.createHTMLTestContext();
-      const compiler = ctx.container.get(ITemplateCompiler);
+      const container = ctx.container;
+      Registration.instance(DefaultSlotStrategy, SlotStrategy.native).register(container);
+      const compiler = container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
         { name: '', template, surrogates: [], instructions: [] },
-        ctx.container
+        container
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [
@@ -83,11 +88,13 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
     const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}="${value}"`).join(' ');
     it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
       const ctx = TestContext.createHTMLTestContext();
-      const compiler = ctx.container.get(ITemplateCompiler);
+      const container = ctx.container;
+      Registration.instance(DefaultSlotStrategy, SlotStrategy.native).register(container);
+      const compiler = container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
         { name: '', template, surrogates: [], instructions: [] },
-        ctx.container
+        container
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [

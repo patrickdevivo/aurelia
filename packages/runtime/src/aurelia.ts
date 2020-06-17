@@ -12,7 +12,9 @@ import {
 } from './dom';
 import {
   BindingStrategy,
-  LifecycleFlags
+  LifecycleFlags,
+  SlotStrategy,
+  DefaultSlotStrategy
 } from './flags';
 import {
   ICustomElementViewModel,
@@ -30,6 +32,7 @@ import { Controller } from './templating/controller';
 
 export interface ISinglePageApp<THost extends INode = INode> {
   strategy?: BindingStrategy;
+  slotStrategy?: SlotStrategy;
   dom?: IDOM;
   host: THost;
   component: unknown;
@@ -72,6 +75,9 @@ export class CompositionRoot<T extends INode = INode> {
       throw new Error(`No host element found.`);
     }
     this.strategy = config.strategy != void 0 ? config.strategy : BindingStrategy.getterSetter;
+
+    const slotStrategy = config.slotStrategy ?? SlotStrategy.native;
+    Registration.instance(DefaultSlotStrategy, slotStrategy).register(container);
 
     const initializer = this.container.get(IDOMInitializer);
     this.dom = initializer.initialize(config) as IDOM<T>;

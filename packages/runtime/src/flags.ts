@@ -1,3 +1,5 @@
+import { DI } from '@aurelia/kernel';
+
 /*
 * Note: the oneTime binding now has a non-zero value for 2 reasons:
 *  - plays nicer with bitwise operations (more consistent code, more explicit settings)
@@ -144,3 +146,10 @@ export const enum ExpressionKind {
   ForOfStatement       = 0b000011000001_10111, //                                           Connects
   Interpolation        = 0b000000000000_11000  //
 }
+
+export const enum SlotStrategy {
+  native,
+  emulate
+}
+
+export const DefaultSlotStrategy = DI.createInterface<SlotStrategy>('DefaultSlotStrategy').noDefault();

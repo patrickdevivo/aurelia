@@ -1,7 +1,8 @@
-import { TemplateBinder, IAttrSyntaxTransformer, ITemplateElementFactory } from '@aurelia/jit-html';
+import { TemplateBinder, IAttrSyntaxTransformer, ITemplateElementFactory, ISlotEmulator } from '@aurelia/jit-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { ResourceModel, IAttributeParser, PlainElementSymbol } from '@aurelia/jit';
-import { IExpressionParser, CustomAttribute } from '@aurelia/runtime';
+import { IExpressionParser, CustomAttribute, SlotStrategy, DefaultSlotStrategy } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
 
 describe('has-multi-bindings.unit.spec.ts', function () {
   interface IBindingSpec {
@@ -305,6 +306,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
       const ctx = TestContext.createHTMLTestContext();
       const { dom, container } = ctx;
 
+      Registration.instance(DefaultSlotStrategy, SlotStrategy.native).register(container);
       container.register(CustomAttribute.define({ name: 'attr', bindables: ['a', 'b', 'c'] }, class {}));
 
       const resources = new ResourceModel(container);
@@ -313,10 +315,11 @@ describe('has-multi-bindings.unit.spec.ts', function () {
       const exprParser = container.get(IExpressionParser);
       const transformer = container.get(IAttrSyntaxTransformer);
       const factory = container.get(ITemplateElementFactory);
+      const emulator = container.get(ISlotEmulator);
 
-      const sut = new TemplateBinder(dom, resources, attrParser, exprParser, transformer);
+      const sut = new TemplateBinder(dom, resources, attrParser, exprParser, transformer, emulator);
 
-      const template = factory.createTemplate(markup) as HTMLTemplateElement;
+      const template = factory.createTemplate(markup, SlotStrategy.native) as HTMLTemplateElement;
       const manifestRoot = sut.bind(template);
       const div = manifestRoot.childNodes[0] as PlainElementSymbol;
 
