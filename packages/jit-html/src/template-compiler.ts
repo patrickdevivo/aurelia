@@ -104,6 +104,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     @IExpressionParser private readonly exprParser: IExpressionParser,
     @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer,
     @DefaultSlotStrategy private readonly slotStrategy: SlotStrategy,
+    @IDOM private readonly dom: IDOM,
   ) {}
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -390,8 +391,9 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       for (let i = 0; i < len; ++i) {
         const replacePart = replaceParts[i];
-        if (!scopeParts.includes(replacePart.name)) {
-          scopeParts[s++] = replacePart.name;
+        const name = replacePart.name;
+        if (!scopeParts.includes(name)) {
+          scopeParts[s++] = name;
         }
 
         const partScopeParts: string[] = [];
@@ -401,13 +403,21 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         // TODO: the assignment to `this.compilation.parts[replacePart.name]` might be the cause of replaceable bug reported by rluba
         // need to verify this
-        this.compilation.parts[replacePart.name] = parts[replacePart.name] = CustomElementDefinition.create({
-          name: replacePart.name,
-          scopeParts: partScopeParts,
-          template: replacePart.physicalNode,
-          instructions: partInstructionRows,
-          needsCompile: false,
-        });
+        let definition = parts[name];
+        if (definition === void 0) {
+          definition = CustomElementDefinition.create({
+            name: name,
+            scopeParts: partScopeParts,
+            template: replacePart.physicalNode,
+            instructions: partInstructionRows,
+            needsCompile: false,
+          });
+        } else {
+          this.dom.appendChild((definition.template as HTMLTemplateElement).content, (replacePart.physicalNode! as HTMLTemplateElement).content);
+          (definition.instructions as ITargetedInstruction[][]).push(...partInstructionRows);
+          (definition.scopeParts as string[]).push(...partScopeParts);
+        }
+        this.compilation.parts[replacePart.name] = parts[replacePart.name] = definition;
       }
     }
     return parts;
